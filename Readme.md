@@ -25,9 +25,24 @@ docker network connect proxynet node3
 docker network connect proxynet node4
 ```
 
-### APP
 
-Change service id to simulate a new node
+### Haproxy
+
+```
+
+cd haproxy 
+docker build -t haproxy .
+
+docker rm -f proxy || true && \
+ docker run -dit -v $(PWD):/var/log --name proxy \
+ --net proxynet -p 80:80 haproxy && \
+ docker logs proxy
+```
+
+
+### Service
+
+Change service id and run multiple containers to simulate addition of new nodes.
 
 ```
 
@@ -39,7 +54,7 @@ docker run -dit  --name=sampleservice1 \
  -e SAMPLE_SERVICE_ID=1 \
  -e CONSUL_HTTP_ADDR=node4:8500 \
  --net proxynet sampleservice
- 
+
 ```
 
 Service registers itself to consul and deregisters on stop.
@@ -50,17 +65,22 @@ Make sure to stop the service by `docker stop` and NOT `docker rm -f`
 docker stop sampleservice1
 ```
 
-#### Haproxy
+
+
+### Test
 
 ```
-
-cd haproxy 
-docker build -t haproxy .
-
-docker rm -f proxy || true && \
- docker run -dit -v $(PWD):/var/log --name proxy \
- --net proxynet -p 80:80 haproxy && \
- docker logs proxy
+for i in {1..10};do curl localhost:80 ; done
+I am sampleservice2
+I am sampleservice4
+I am sampleservice1
+I am sampleservice1
+I am sampleservice1
+I am sampleservice1
+I am sampleservice1
+I am sampleservice1
+I am sampleservice1
+I am sampleservice1
 ```
 
 
